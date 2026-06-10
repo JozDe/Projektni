@@ -1,0 +1,175 @@
+<?php
+
+header('Content-Type: application/xml; charset=utf-8');
+header('Access-Control-Allow-Origin: *');
+
+define('JOLPICA_BASE', 'https://api.jolpi.ca/ergast/f1');
+define('CURRENT_YEAR', date('Y'));
+ 
+
+$type  = isset($_GET['type'])  ? strtolower(trim($_GET['type'])) : 'standings';
+$year  = isset($_GET['year'])  ? (int)$_GET['year']              : CURRENT_YEAR;
+$round = isset($_GET['round']) ? (int)$_GET['round']             : 0;
+ 
+
+if ($year < 1950 || $year > (int)CURRENT_YEAR) {
+    $year = (int)CURRENT_YEAR;
+}
+ 
+
+switch ($type) {
+    case 'standings': echo get_standings($year); break;
+    case 'schedule':  echo get_schedule($year);  break;
+    case 'results':   echo get_results($year, $round); break;
+    default:
+        echo error_xml("Unknown type '$type'. Use: standings, schedule, results.");
+}
+ 
+function get_standings(int $year): string {
+    $data = jolpica_fetch("/$year/driverStandings.json");
+    if (!$data) return error_xml('Could not fetch standings from Jolpica API.');
+ 
+    $list = $data['MRData']['StandingsTable']['StandingsLists'][0]['DriverStandings'] ?? [];
+ 
+    $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><f1api/>');
+    $xml->addChild('type', 'driver_standings');
+    $xml->addChild('season', $year);
+    $xml->addChild('source', 'api.jolpi.ca');
+    $standings = $xml->addChild('standings');
+ 
+    foreach ($list as $entry) {
+        $d   = $entry['Driver'];
+        $con = $entry['Constructors'][0] ?? [];
+        $node = $standings->addChild('driver');
+        $node->addChild('position',    htmlspecialchars($entry['position']    ?? ''));
+        $node->addChild('points',      htmlspecialchars($entry['points']      ?? ''));
+        $node->addChild('wins',        htmlspecialchars($entry['wins']        ?? ''));
+        $node->addChild('code',        htmlspecialchars($d['code']            ?? ''));
+        $node->addChild('first_name',  htmlspecialchars($d['givenName']       ?? ''));
+        $node->addChild('last_name',   htmlspecialchars($d['familyName']      ?? ''));
+        $node->addChild('nationality', htmlspecialchars($d['nationality']     ?? ''));
+        $node->addChild('team',        htmlspecialchars($con['name']          ?? ''));
+    }
+ 
+    return pretty_xml($xml);
+}
+ 
+function get_schedule(int $year): string {
+    $data = jolpica_fetch("/$year.json");
+    if (!$data) return error_xml('Could not fetch schedule from Jolpica API.');
+ 
+    $races = $data['MRData']['RaceTable']['Races'] ?? [];
+ 
+    $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><f1api/>');
+    $xml->addChild('type', 'race_schedule');
+    $xml->addChild('season', $year);
+    $xml->addChild('total_races', count($races));
+    $xml->addChild('source', 'api.jolpi.ca');
+    $schedule = $xml->addChild('schedule');
+ 
+    foreach ($races as $race) {
+        $c    = $race['Circuit'];
+        $loc  = $c['Location'];
+        $node = $schedule->addChild('race');
+        $node->addChild('round',        htmlspecialchars($race['round']       ?? ''));
+        $node->addChild('name',         htmlspecialchars($race['raceName']    ?? ''));
+        $node->addChild('date',         htmlspecialchars($race['date']        ?? ''));
+        $node->addChild('time',         htmlspecialchars($race['time']        ?? 'TBA'));
+        $node->addChild('circuit',      htmlspecialchars($c['circuitName']    ?? ''));
+        $node->addChild('locality',     htmlspecialchars($loc['locality']     ?? ''));
+        $node->addChild('country',      htmlspecialchars($loc['country']      ?? ''));
+ 
+        if (!empty($race['Sprint'])) {
+            $node->addChild('sprint_date', htmlspecialchars($race['Sprint']['date'] ?? ''));
+        }
+    }
+ 
+    return pretty_xml($xml);
+}
+ 
+function get_results(int $year, int $round): string {
+    $path = $round > 0
+        ? "/$year/$round/results.json"
+        : "/$year/last/results.json";
+ 
+    $data = jolpica_fetch($path);
+    if (!$data) return error_xml('Could not fetch results from Jolpica API.');
+ 
+    $races = $data['MRData']['RaceTable']['Races'] ?? [];
+    if (empty($races)) return error_xml('No results found for the requested race.');
+ 
+    $race    = $races[0];
+    $results = $race['Results'] ?? [];
+ 
+    $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><f1api/>');
+    $xml->addChild('type',    'race_results');
+    $xml->addChild('season',  htmlspecialchars($race['season']   ?? $year));
+    $xml->addChild('round',   htmlspecialchars($race['round']    ?? ''));
+    $xml->addChild('race',    htmlspecialchars($race['raceName'] ?? ''));
+    $xml->addChild('circuit', htmlspecialchars($race['Circuit']['circuitName'] ?? ''));
+    $xml->addChild('date',    htmlspecialchars($race['date']     ?? ''));
+    $xml->addChild('source',  'api.jolpi.ca');
+    $list = $xml->addChild('results');
+ 
+    foreach ($results as $r) {
+        $d    = $r['Driver'];
+        $con  = $r['Constructor'];
+        $node = $list->addChild('result');
+        $node->addChild('position',   htmlspecialchars($r['position']        ?? ''));
+        $node->addChild('points',     htmlspecialchars($r['points']          ?? ''));
+        $node->addChild('grid',       htmlspecialchars($r['grid']            ?? ''));
+        $node->addChild('laps',       htmlspecialchars($r['laps']            ?? ''));
+        $node->addChild('status',     htmlspecialchars($r['status']          ?? ''));
+        $node->addChild('code',       htmlspecialchars($d['code']            ?? ''));
+        $node->addChild('first_name', htmlspecialchars($d['givenName']       ?? ''));
+        $node->addChild('last_name',  htmlspecialchars($d['familyName']      ?? ''));
+        $node->addChild('team',       htmlspecialchars($con['name']          ?? ''));
+ 
+    
+        if (!empty($r['FastestLap'])) {
+            $fl = $r['FastestLap'];
+            $flNode = $node->addChild('fastest_lap');
+            $flNode->addChild('rank',  htmlspecialchars($fl['rank']             ?? ''));
+            $flNode->addChild('lap',   htmlspecialchars($fl['lap']              ?? ''));
+            $flNode->addChild('time',  htmlspecialchars($fl['Time']['time']     ?? ''));
+            $flNode->addChild('speed', htmlspecialchars($fl['AverageSpeed']['speed'] ?? ''));
+        }
+    }
+ 
+    return pretty_xml($xml);
+}
+ 
+ 
+
+function jolpica_fetch(string $path): ?array {
+    $url = JOLPICA_BASE . $path;
+    $ctx = stream_context_create([
+        'http' => [
+            'timeout'       => 10,
+            'ignore_errors' => true,
+            'header'        => "User-Agent: F1-PHP-Wrapper/1.0\r\n",
+        ]
+    ]);
+ 
+    $raw = @file_get_contents($url, false, $ctx);
+    if ($raw === false) return null;
+ 
+    $decoded = json_decode($raw, true);
+    return is_array($decoded) ? $decoded : null;
+}
+ 
+
+function pretty_xml(SimpleXMLElement $xml): string {
+    $dom               = dom_import_simplexml($xml)->ownerDocument;
+    $dom->formatOutput = true;
+    return $dom->saveXML();
+}
+ 
+
+function error_xml(string $message): string {
+    http_response_code(400);
+    $xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><f1api/>');
+    $xml->addChild('status',  'error');
+    $xml->addChild('message', htmlspecialchars($message));
+    return pretty_xml($xml);
+}
