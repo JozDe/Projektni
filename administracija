@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 News - Administration</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+ 
+<?php
+session_start();
+include 'connect.php';
+define('UPLPATH', 'img/');
+ 
+$uspjesnaPrijava = false;
+$admin           = false;
+$imeKorisnika    = '';
+ 
+
+if (isset($_GET['logout'])) {
+    session_destroy();
+    header('Location: administracija.php');
+    exit;
+}
+
+if (isset($_POST['prijava'])) {
+    $prijavaUsername = $_POST['username'];
+    $prijavaLozinka  = $_POST['lozinka'];
+ 
+    $sql  = "SELECT korisnicko_ime, lozinka, razina FROM korisnik WHERE korisnicko_ime = ?";
+    $stmt = mysqli_stmt_init($dbc);
+    if (mysqli_stmt_prepare($stmt, $sql)) {
+        mysqli_stmt_bind_param($stmt, 's', $prijavaUsername);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_store_result($stmt);
+        mysqli_stmt_bind_result($stmt, $imeKorisnika, $lozinkaKorisnika, $levelKorisnika);
+        mysqli_stmt_fetch($stmt);
+    }
+ 
+    if (mysqli_stmt_num_rows($stmt) > 0 && password_verify($prijavaLozinka, $lozinkaKorisnika)) {
+        $uspjesnaPrijava = true;
+        $_SESSION['username'] = $imeKorisnika;
+        $_SESSION['level']    = $levelKorisnika;
+        $admin = ($levelKorisnika == 1);
+    } else {
+        $uspjesnaPrijava = false;
+    }
+}
+ 
+if (isset($_SESSION['username'])) {
+    $imeKorisnika    = $_SESSION['username'];
+    $uspjesnaPrijava = true;
+    $admin           = ($_SESSION['level'] == 1);
+}
+ 
+if ($admin && isset($_POST['delete'])) {
+    $id   = (int)$_POST['id'];
+    $sql  = "DELETE FROM vijesti WHERE id = ?";
+    $stmt = mysqli_stmt_init($dbc);
+    if (mysqli_stmt_prepare($stmt, $sql)) {
+        mysqli_stmt_bind_param($stmt, 'i', $id);
+        mysqli_stmt_execute($stmt);
+    }
+}
+ 
+if ($admin && isset($_POST['update'])) {
+    $id       = (int)$_POST['id'];
+    $title    = $_POST['title'];
+    $about    = $_POST['about'];
+    $content  = $_POST['content'];
+    $category = $_POST['category'];
+    $archive  = isset($_POST['archive']) ? 1 : 0;
+ 
+    if (isset($_FILES['pphoto']) && $_FILES['pphoto']['error'] === 0) {
+        $picture = basename($_FILES['pphoto']['name']);
+        if (!is_dir('img')) mkdir('img', 0755, true);
+        move_uploaded_file($_FILES['pphoto']['tmp_name'], 'img/' . $picture);
+    } else {
+        $picture = $_POST['existing_photo'];
+    }
+ 
+    $sql  = "UPDATE vijesti SET naslov=?, sazetak=?, tekst=?, slika=?, kategorija=?, arhiva=? WHERE id=?";
+    $stmt = mysqli_stmt_init($dbc);
+    if (mysqli_stmt_prepare($stmt, $sql)) {
+        mysqli_stmt_bind_param($stmt, 'sssssii',
+            $title, $about, $content, $picture, $category, $archive, $id);
+        mysqli_stmt_execute($stmt);
+    }
+}
+?>
+ 
+    <header>
+        <div class="header-logo">
+            <span class="logo-text">F1 News</span>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.php" class="active">HOME</a></li>
+                <li><a href="F1stats.php">STATS</a></li>
+                <li><a href="administracija.php">ADMINISTRATION</a></li>
+                <li><a href="Unos.php">ADD NEWS</a></li>
+            </ul>
+        </nav>
+    </header>
+ 
+    <main>
+        <div class="article-page-wrapper" style="max-width:860px;">
+ 
+<?php
+if ($uspjesnaPrijava && $admin):
+?>
+            <div class="admin-top-bar">
+                <h2 class="article-category">ADMINISTRATION</h2>
+                <span>Logged in as: <strong><?php echo htmlspecialchars($imeKorisnika); ?></strong></span>
+                <a href="administracija.php?logout=1" class="btn-logout">Log out</a>
+            </div>
+ 
+            <?php
+            $query  = "SELECT * FROM vijesti ORDER BY id DESC";
+            $result = mysqli_query($dbc, $query);
+ 
+            if (mysqli_num_rows($result) === 0) {
+                echo '<div class="article-card" style="padding:30px;"><p>No articles found.</p></div>';
+            }
+ 
+            while ($row = mysqli_fetch_array($result)):
+            ?>
+ 
+            <div class="admin-entry">
+                <div class="admin-entry-header">
+                    <span class="admin-entry-id">#<?php echo $row['id']; ?></span>
+                    <strong><?php echo htmlspecialchars($row['naslov']); ?></strong>
+                    <span class="admin-entry-cat"><?php echo htmlspecialchars($row['kategorija']); ?></span>
+                </div>
+ 
+                <form enctype="multipart/form-data" action="administracija.php" method="POST" class="admin-form article-card">
+                    <input type="hidden" name="id"             value="<?php echo $row['id']; ?>">
+ 
+                    <div class="form-item">
+                        <label>Article title</label>
+                        <div class="form-field">
+                            <input type="text" name="title" class="form-field-textual"
+                                   value="<?php echo htmlspecialchars($row['naslov']); ?>">
+                        </div>
+                    </div>
+ 
+                    <div class="form-item">
+                        <label>Short summary</label>
+                        <div class="form-field">
+                            <textarea name="about" cols="30" rows="3" class="form-field-textual"><?php echo htmlspecialchars($row['sazetak']); ?></textarea>
+                        </div>
+                    </div>
+ 
+                    <div class="form-item">
+                        <label>Article content</label>
+                        <div class="form-field">
+                            <textarea name="content" cols="30" rows="6" class="form-field-textual"><?php echo htmlspecialchars($row['tekst']); ?></textarea>
+                        </div>
+                    </div>
+ 
+                    <div class="form-item">
+                        <label>Category</label>
+                        <div class="form-field">
+                            <select name="category" class="form-field-textual">
+                                <option value="F1" <?php if($row['kategorija']==='beruf-karriere') echo 'selected'; ?>>Drivers</option>
+                                <option value="Circuit"           <?php if($row['kategorija']==='food')           echo 'selected'; ?>>Circuits</option>
+                            </select>
+                        </div>
+                    </div>
+ 
+                    <div class="form-item form-item-buttons">
+                        <button type="reset"  class="btn-reset">Reset</button>
+                        <button type="submit" name="update" value="1" class="btn-submit">Update</button>
+                        <button type="submit" name="delete" value="1" class="btn-delete"
+                                onclick="return confirm('Are you sure you want to delete this article?')">Delete</button>
+                    </div>
+                </form>
+            </div>
+ 
+            <?php endwhile; ?>
+ 
+<?php
+elseif ($uspjesnaPrijava && !$admin):
+?>
+            <div class="article-card login-card">
+                <p class="error-msg">
+                    Hello <strong><?php echo htmlspecialchars($imeKorisnika); ?></strong>!
+                    You are logged in, but you do not have administrator rights to access this page.
+                </p>
+                <a href="administracija.php?logout=1" class="back-link">Log out</a>
+            </div>
+ 
+<?php
+else:
+?>
+            <h2 class="article-category">LOGIN</h2>
+            <div class="article-card login-card">
+ 
+                <?php if (isset($_POST['prijava']) && !$uspjesnaPrijava): ?>
+                    <p class="error-msg">
+                        &#9888; Incorrect username or password.
+                        Not registered? <a href="registracija.php">Register here.</a>
+                    </p>
+                <?php endif; ?>
+ 
+                <form action="administracija.php" method="POST" id="loginForma">
+ 
+                    <div class="form-item">
+                        <span id="porukaUser" class="bojaPoruke"></span>
+                        <label for="username">Username</label>
+                        <div class="form-field">
+                            <input type="text" name="username" id="loginUsername"
+                                   class="form-field-textual" autofocus>
+                        </div>
+                    </div>
+ 
+                    <div class="form-item">
+                        <span id="porukaLozinka" class="bojaPoruke"></span>
+                        <label for="lozinka">Password</label>
+                        <div class="form-field">
+                            <input type="password" name="lozinka" id="loginLozinka"
+                                   class="form-field-textual">
+                        </div>
+                    </div>
+ 
+                    <div class="form-item form-item-buttons">
+                        <button type="submit" name="prijava" value="1" id="loginBtn" class="btn-submit">
+                            Login
+                        </button>
+                        <a href="registracija.php" class="btn-reset" style="padding:10px 20px;display:inline-block;text-align:center;">
+                            Register
+                        </a>
+                    </div>
+ 
+                </form>
+            </div>
+ 
+            <script type="text/javascript">
+            document.getElementById("loginBtn").onclick = function(event) {
+                var ok = true;
+ 
+                var poljeUser = document.getElementById("loginUsername");
+                if (poljeUser.value.trim().length === 0) {
+                    ok = false;
+                    poljeUser.style.border = "1px dashed red";
+                    document.getElementById("porukaUser").innerHTML = "<br>Please enter your username!<br>";
+                } else {
+                    poljeUser.style.border = "1px solid green";
+                    document.getElementById("porukaUser").innerHTML = "";
+                }
+ 
+                var poljeLoz = document.getElementById("loginLozinka");
+                if (poljeLoz.value.length === 0) {
+                    ok = false;
+                    poljeLoz.style.border = "1px dashed red";
+                    document.getElementById("porukaLozinka").innerHTML = "<br>Please enter your password!<br>";
+                } else {
+                    poljeLoz.style.border = "1px solid green";
+                    document.getElementById("porukaLozinka").innerHTML = "";
+                }
+ 
+                if (!ok) event.preventDefault();
+            };
+            </script>
+ 
+<?php endif; ?>
+ 
+        </div>
+    </main>
+ 
+    <footer>
+        <div class="footer-logo">
+            <span class="logo-text">F1</span>
+        </div>
+        <p class="footer-info">F1 News 2026</p>
+    </footer>
+ 
+<?php mysqli_close($dbc); ?>
+ 
+</body>
+</html>
