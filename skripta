@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 News - <?php if (isset($_POST['title'])) echo htmlspecialchars($_POST['title']); else echo 'Article preview'; ?></title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+ 
+    <header>
+        <div class="header-logo">
+            <span class="logo-text">F1 News</span>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.php" class="active">HOME</a></li>
+                <li><a href="F1stats.php">STATS</a></li>
+                <li><a href="administracija.php">ADMINISTRATION</a></li>
+                <li><a href="Unos.php">ADD NEWS</a></li>
+            </ul>
+        </nav>
+    </header>
+ 
+    <main class="article-page">
+        <div class="article-page-wrapper">
+ 
+<?php
+ 
+if (isset($_POST['title'])) {
+    $title = $_POST['title'];
+} else {
+    $title = '';
+}
+ 
+if (isset($_POST['about'])) {
+    $about = $_POST['about'];
+} else {
+    $about = '';
+}
+ 
+if (isset($_POST['content'])) {
+    $content = $_POST['content'];
+} else {
+    $content = '';
+}
+ 
+if (isset($_POST['category'])) {
+    $category = $_POST['category'];
+} else {
+    $category = '';
+}
+ 
+if (isset($_POST['archive'])) {
+    $archive = $_POST['archive'];
+} else {
+    $archive = 'no';
+}
+ 
+if (isset($_FILES['pphoto']) && $_FILES['pphoto']['error'] === 0) {
+    $image = basename($_FILES['pphoto']['name']);
+    if (!is_dir('img')) {
+        mkdir('img', 0755, true);
+    }
+    move_uploaded_file($_FILES['pphoto']['tmp_name'], 'img/' . $image);
+} else {
+    $image = '';
+}
+ 
+$category_labels = [
+    'beruf-karriere' => 'Drivers',
+    'food'           => 'Circuits',
+    'sport'          => 'Sport',
+    'kultura'        => 'Culture',
+];
+$category_display = isset($category_labels[$category]) ? $category_labels[$category] : htmlspecialchars($category);
+ 
+if (empty($title) && empty($content)) {
+    echo '<div class="article-card" style="padding:30px;">';
+    echo '<p>No data entered. <a href="Unos.php">Go back to add news.</a></p>';
+    echo '</div>';
+} else {
+ 
+?>
+ 
+            <h2 class="article-category"><?php echo $category_display; ?></h2>
+ 
+            <div class="article-card">
+                <section role="main">
+ 
+                    <div class="row">
+                        <h1 class="skripta-title"><?php echo htmlspecialchars($title); ?></h1>
+                        <p class="skripta-meta">AUTHOR: <span>—</span></p>
+                        <p class="skripta-meta">PUBLISHED: <span><?php echo date('d.m.Y'); ?></span></p>
+                        <?php if ($archive === '1'): ?>
+                            <p class="skripta-archive">&#128190; Saved to archive</p>
+                        <?php endif; ?>
+                    </div>
+ 
+                    <?php if (!empty($image)): ?>
+                    <section class="skripta-slika">
+                        <img src="img/<?php echo htmlspecialchars($image); ?>" alt="<?php echo htmlspecialchars($title); ?>">
+                    </section>
+                    <?php endif; ?>
+ 
+                    <?php if (!empty($about)): ?>
+                    <section class="skripta-about">
+                        <p><?php echo nl2br(htmlspecialchars($about)); ?></p>
+                    </section>
+                    <?php endif; ?>
+ 
+                    <?php if (!empty($content)): ?>
+                    <section class="skripta-sadrzaj">
+                        <p><?php echo nl2br(htmlspecialchars($content)); ?></p>
+                    </section>
+                    <?php endif; ?>
+ 
+                    <a href="Unos.php" class="back-link">&larr; Add another article</a>
+ 
+                </section>
+            </div>
+ 
+<?php } ?>
+ 
+        </div>
+    </main>
+ 
+    <footer>
+        <div class="footer-logo">
+            <span class="logo-text">F1</span>
+        </div>
+        <p class="footer-info">F1 News 2026</p>
+    </footer>
+ 
+</body>
+</html>
