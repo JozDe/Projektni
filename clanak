@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 News - Article</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+ 
+<?php
+include 'connect.php';
+define('UPLPATH', 'img/');
+ 
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+ 
+if ($id > 0) {
+    $query  = "SELECT * FROM vijesti WHERE id=$id LIMIT 1";
+    $result = mysqli_query($dbc, $query);
+    $row    = mysqli_fetch_array($result);
+} else {
+    $row = null;
+}
+ 
+$category_labels = [
+    'beruf-karriere' => 'Drivers',
+    'food'           => 'Circuits',
+    'sport'          => 'Sport',
+    'kultura'        => 'Culture',
+];
+$cat_display = ($row && isset($category_labels[$row['kategorija']]))
+    ? $category_labels[$row['kategorija']]
+    : htmlspecialchars($row['kategorija'] ?? '');
+?>
+ 
+    <header>
+        <div class="header-logo">
+            <span class="logo-text">F1 News</span>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.php">HOME</a></li>
+                <li><a href="administracija.php">ADMINISTRATION</a></li>
+                <li><a href="Unos.php">ADD NEWS</a></li>
+                <li><a href="F1stats.php">STATS</a></li>
+            </ul>
+        </nav>
+    </header>
+ 
+    <main class="article-page">
+        <div class="article-page-wrapper">
+ 
+        <?php if ($row): ?>
+ 
+            <h2 class="article-category"><?php echo $cat_display; ?></h2>
+ 
+            <div class="article-card">
+                <section role="main">
+ 
+                    <div class="row">
+                        <h1 class="skripta-title"><?php echo htmlspecialchars($row['naslov']); ?></h1>
+                        <p class="skripta-meta">AUTHOR: <span>—</span></p>
+                        <p class="skripta-meta">PUBLISHED: <span><?php echo htmlspecialchars($row['datum']); ?></span></p>
+                    </div>
+ 
+                    <?php if (!empty($row['slika'])): ?>
+                    <section class="skripta-slika">
+                        <img src="<?php echo UPLPATH . htmlspecialchars($row['slika']); ?>" alt="<?php echo htmlspecialchars($row['naslov']); ?>">
+                    </section>
+                    <?php endif; ?>
+ 
+                    <?php if (!empty($row['sazetak'])): ?>
+                    <section class="skripta-about">
+                        <p><i><?php echo htmlspecialchars($row['sazetak']); ?></i></p>
+                    </section>
+                    <?php endif; ?>
+ 
+                    <?php if (!empty($row['tekst'])): ?>
+                    <section class="skripta-sadrzaj">
+                        <p><?php echo nl2br(htmlspecialchars($row['tekst'])); ?></p>
+                    </section>
+                    <?php endif; ?>
+ 
+                    <a href="index.php" class="back-link">&larr; Back to home</a>
+ 
+                </section>
+            </div>
+ 
+        <?php else: ?>
+            <div class="article-card" style="padding:30px;">
+                <p>Article not found. <a href="index.php">Return to home.</a></p>
+            </div>
+        <?php endif; ?>
+ 
+        </div>
+    </main>
+ 
+    <footer>
+        <div class="footer-logo">
+            <span class="logo-text">F1 News</span>
+        </div>
+        <p class="footer-info">F1 News &nbsp;|&nbsp; info@f1news.com &nbsp;|&nbsp; 2024</p>
+    </footer>
+ 
+<?php mysqli_close($dbc); ?>
+ 
+</body>
+</html>
