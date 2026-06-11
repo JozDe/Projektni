@@ -5,165 +5,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>F1 Stats</title>
     <link rel="stylesheet" type="text/css" href="style.css">
-    <style>
-        .tabs {
-            display: flex;
-            gap: 0;
-            margin-bottom: 0;
-            border-bottom: 3px solid #1a1a1a;
-        }
- 
-        .tab-btn {
-            padding: 11px 24px;
-            font-family: 'Arial', sans-serif;
-            font-size: 0.8rem;
-            font-weight: bold;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            background: #e0e0e0;
-            color: #555555;
-            border: none;
-            cursor: pointer;
-            transition: background 0.2s, color 0.2s;
-        }
- 
-        .tab-btn:hover { background: #cccccc; }
- 
-        .tab-btn.active {
-            background: #15151e;
-            color: #ffffff;
-        }
- 
-        .tab-panel { display: none; }
-        .tab-panel.active { display: block; }
- 
-        .controls {
-            display: flex;
-            gap: 10px;
-            margin: 20px 0 12px 0;
-            flex-wrap: wrap;
-            align-items: center;
-        }
- 
-        .controls input, .controls select {
-            padding: 9px 12px;
-            font-family: 'Arial', sans-serif;
-            font-size: 0.88rem;
-            border: 1px solid #cccccc;
-            background: #fafafa;
-            color: #222222;
-            border-radius: 2px;
-        }
- 
-        .controls input { flex: 1; min-width: 180px; }
-        .controls select { min-width: 120px; }
- 
-        .controls input:focus, .controls select:focus {
-            outline: none;
-            border-color: #e10600;
-            box-shadow: 0 0 0 2px rgba(225,6,0,0.15);
-            background: #ffffff;
-        }
- 
-        .stats-bar {
-            font-family: 'Arial', sans-serif;
-            font-size: 0.82rem;
-            color: #888888;
-            margin-bottom: 8px;
-        }
- 
-        .tbl-wrap {
-            overflow-x: auto;
-            border: 1px solid #e0e0e0;
-        }
- 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-family: 'Arial', sans-serif;
-            font-size: 0.85rem;
-        }
- 
-        thead tr { background-color: #15151e; color: #ffffff; }
- 
-        thead th {
-            padding: 12px 14px;
-            text-align: left;
-            font-size: 0.78rem;
-            letter-spacing: 0.06em;
-            white-space: nowrap;
-            cursor: pointer;
-            user-select: none;
-        }
- 
-        thead th:hover { background-color: #2a2a3e; }
-        thead th.sorted { color: #e10600; }
-        thead th .arrow { margin-left: 4px; opacity: 0.5; }
-        thead th.sorted .arrow { opacity: 1; }
- 
-        tbody tr {
-            border-bottom: 1px solid #eeeeee;
-            background-color: #ffffff;
-            transition: background-color 0.15s;
-        }
- 
-        tbody tr:last-child { border-bottom: none; }
-        tbody tr:hover { background-color: #fdf0f0; }
-        tbody td { padding: 10px 14px; color: #222222; vertical-align: middle; }
- 
-        td.pos {
-            font-weight: 900;
-            color: #e10600;
-            font-size: 1rem;
-            width: 48px;
-        }
- 
-        td.driver, td.race { font-weight: bold; }
-        td.team, td.circuit { color: #666666; }
-        td.pts { font-weight: bold; color: #15151e; }
-        td.status-fin  { color: #3B6D11; font-weight: bold; }
-        td.status-other{ color: #c0392b; }
- 
-        .medal-1 { color: #f5c518; }
-        .medal-2 { color: #aaaaaa; }
-        .medal-3 { color: #cd7f32; }
- 
-        .empty-row td {
-            padding: 32px;
-            text-align: center;
-            color: #888888;
-            font-style: italic;
-        }
- 
-        .loading-row td {
-            padding: 32px;
-            text-align: center;
-            color: #aaaaaa;
-            font-style: italic;
-        }
- 
-        .error-banner {
-            background: #fdecea;
-            border-left: 4px solid #c0392b;
-            padding: 12px 16px;
-            margin: 16px 0;
-            font-family: 'Arial', sans-serif;
-            font-size: 0.88rem;
-            color: #c0392b;
-            display: none;
-        }
- 
-        .year-label {
-            font-family: 'Arial', sans-serif;
-            font-size: 0.82rem;
-            color: #888888;
-            margin-left: auto;
-        }
- 
-        .round-select { min-width: 200px; }
-    </style>
 </head>
 <body>
+ 
+<?php
+$tab    = isset($_GET['tab'])    ? $_GET['tab']            : 'standings';
+$year   = isset($_GET['year'])   ? (int)$_GET['year']      : (int)date('Y');
+$search = isset($_GET['search']) ? trim($_GET['search'])   : '';
+ 
+$allowedTabs = ['standings', 'schedule', 'results'];
+if (!in_array($tab, $allowedTabs)) {
+    $tab = 'standings';
+}
+ 
+if ($year < 2010 || $year > (int)date('Y')) {
+    $year = (int)date('Y');
+}
+ 
+$apiUrl = "F1api.php?type=$tab&year=$year";
+ 
+$xmlString = @file_get_contents("http://" . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . "/" . $apiUrl);
+ 
+$xml   = $xmlString ? @simplexml_load_string($xmlString) : false;
+$error = '';
+ 
+if ($xml === false) {
+    $error = 'Could not load data from F1api.php. Check the file exists and allow_url_fopen is enabled.';
+} elseif (isset($xml->status) && (string)$xml->status === 'error') {
+    $error = (string)$xml->message;
+}
+?>
  
     <header>
         <div class="header-logo">
@@ -171,7 +42,10 @@
         </div>
         <nav>
             <ul>
-                <li><a href="f1stats.php" class="active">STATS</a></li>
+                <li><a href="index.php" class="active">HOME</a></li>
+                <li><a href="F1stats.php">STATS</a></li>
+                <li><a href="administracija.php">ADMINISTRATION</a></li>
+                <li><a href="Unos.php">ADD NEWS</a></li>
             </ul>
         </nav>
     </header>
@@ -180,381 +54,203 @@
         <div style="max-width:1000px; margin:0 auto; padding:40px 20px;">
  
             <div class="tabs">
-                <button class="tab-btn active" onclick="switchTab('standings', this)">Driver Standings</button>
-                <button class="tab-btn"        onclick="switchTab('schedule',  this)">Race Schedule</button>
-                <button class="tab-btn"        onclick="switchTab('results',   this)">Race Results</button>
+                <a class="tab-btn <?= $tab === 'standings' ? 'active' : '' ?>" href="?tab=standings">Driver Standings</a>
+                <a class="tab-btn <?= $tab === 'schedule'  ? 'active' : '' ?>" href="?tab=schedule">Race Schedule</a>
+                <a class="tab-btn <?= $tab === 'results'   ? 'active' : '' ?>" href="?tab=results">Race Results</a>
             </div>
  
-            <div id="errorBanner" class="error-banner"></div>
+            <?php if ($error): ?>
+                <div class="error-msg">⚠ <?= htmlspecialchars($error) ?></div>
+            <?php else: ?>
  
-            <!-- ── STANDINGS ── -->
-            <div id="tab-standings" class="tab-panel active">
-                <div class="controls">
-                    <input type="text" id="standingsSearch" placeholder="Search driver or team…" oninput="filterStandings()">
-                    <select id="standingsYear" onchange="loadStandings()">
-                        <?php for ($y = (int)date('Y'); $y >= 2010; $y--): ?>
-                            <option value="<?= $y ?>" <?= $y == (int)date('Y') ? 'selected' : '' ?>><?= $y ?></option>
-                        <?php endfor; ?>
-                    </select>
+            <form method="GET" class="controls">
+                <input type="hidden" name="tab" value="<?= htmlspecialchars($tab) ?>">
+                <input type="text" name="search" placeholder="Search…" value="<?= htmlspecialchars($search) ?>">
+                <select name="year">
+                    <?php for ($y = (int)date('Y'); $y >= 2010; $y--): ?>
+                        <option value="<?= $y ?>" <?= $y === $year ? 'selected' : '' ?>><?= $y ?></option>
+                    <?php endfor; ?>
+                </select>
+                <button type="submit" class="btn-submit" style="padding:9px 20px;">Search</button>
+            </form>
+ 
+            <?php
+
+            if ($tab === 'standings'):
+ 
+                $drivers = [];
+                foreach ($xml->standings->driver as $d) {
+                    $name = $d->first_name . ' ' . $d->last_name;
+                    $team = (string)$d->team;
+                    if ($search !== '' && stripos($name, $search) === false && stripos($team, $search) === false) {
+                        continue;
+                    }
+                    $drivers[] = $d;
+                }
+            ?>
+                <div class="stats-bar">
+                    <?= count($drivers) ?> driver<?= count($drivers) === 1 ? '' : 's' ?>
+                    <?= $search !== '' ? ' matching "' . htmlspecialchars($search) . '"' : '' ?>
+                    — Season <?= $year ?>
                 </div>
-                <div class="stats-bar" id="standingsBar"></div>
+ 
                 <div class="tbl-wrap">
                     <table>
                         <thead>
                             <tr>
-                                <th onclick="sortTable('standings','position')"  id="sth-position">POS <span class="arrow">↕</span></th>
-                                <th onclick="sortTable('standings','driver')"    id="sth-driver">Driver <span class="arrow">↕</span></th>
-                                <th onclick="sortTable('standings','team')"      id="sth-team">Team <span class="arrow">↕</span></th>
-                                <th onclick="sortTable('standings','points')"    id="sth-points">PTS <span class="arrow">↕</span></th>
-                                <th onclick="sortTable('standings','wins')"      id="sth-wins">Wins <span class="arrow">↕</span></th>
-                                <th onclick="sortTable('standings','nationality')"id="sth-nationality">Nationality <span class="arrow">↕</span></th>
+                                <th>POS</th>
+                                <th>Driver</th>
+                                <th>Team</th>
+                                <th>PTS</th>
+                                <th>Wins</th>
+                                <th>Nationality</th>
                             </tr>
                         </thead>
-                        <tbody id="standingsTbody">
-                            <tr class="loading-row"><td colspan="6">Loading standings…</td></tr>
+                        <tbody>
+                        <?php if (empty($drivers)): ?>
+                            <tr class="empty-row"><td colspan="6">No drivers found.</td></tr>
+                        <?php else: ?>
+                            <?php foreach ($drivers as $d): ?>
+                                <tr>
+                                    <td class="pos"><?= htmlspecialchars($d->position) ?></td>
+                                    <td class="driver">
+                                        <?= htmlspecialchars($d->first_name . ' ' . $d->last_name) ?>
+                                        <span style="color:#aaa;font-weight:normal;font-size:0.8em"><?= htmlspecialchars($d->code) ?></span>
+                                    </td>
+                                    <td class="team"><?= htmlspecialchars($d->team) ?></td>
+                                    <td class="pts"><?= htmlspecialchars($d->points) ?></td>
+                                    <td><?= htmlspecialchars($d->wins) ?></td>
+                                    <td><?= htmlspecialchars($d->nationality) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
-            </div>
  
-            <div id="tab-schedule" class="tab-panel">
-                <div class="controls">
-                    <input type="text" id="scheduleSearch" placeholder="Search race or circuit…" oninput="filterSchedule()">
-                    <select id="scheduleYear" onchange="loadSchedule()">
-                        <?php for ($y = (int)date('Y'); $y >= 2010; $y--): ?>
-                            <option value="<?= $y ?>" <?= $y == (int)date('Y') ? 'selected' : '' ?>><?= $y ?></option>
-                        <?php endfor; ?>
-                    </select>
+            <?php
+            elseif ($tab === 'schedule'):
+ 
+                $races = [];
+                foreach ($xml->schedule->race as $r) {
+                    $name    = (string)$r->name;
+                    $circuit = (string)$r->circuit;
+                    if ($search !== '' && stripos($name, $search) === false && stripos($circuit, $search) === false) {
+                        continue;
+                    }
+                    $races[] = $r;
+                }
+            ?>
+                <div class="stats-bar">
+                    <?= count($races) ?> race<?= count($races) === 1 ? '' : 's' ?>
+                    <?= $search !== '' ? ' matching "' . htmlspecialchars($search) . '"' : '' ?>
+                    — Season <?= $year ?>
                 </div>
-                <div class="stats-bar" id="scheduleBar"></div>
+ 
                 <div class="tbl-wrap">
                     <table>
                         <thead>
                             <tr>
-                                <th onclick="sortTable('schedule','round')"   id="scth-round">Round <span class="arrow">↕</span></th>
-                                <th onclick="sortTable('schedule','name')"    id="scth-name">Race <span class="arrow">↕</span></th>
-                                <th onclick="sortTable('schedule','circuit')" id="scth-circuit">Circuit <span class="arrow">↕</span></th>
-                                <th onclick="sortTable('schedule','country')" id="scth-country">Country <span class="arrow">↕</span></th>
-                                <th onclick="sortTable('schedule','date')"    id="scth-date">Date <span class="arrow">↕</span></th>
-                                <th>Sprint</th>
+                                <th>Round</th>
+                                <th>Race</th>
+                                <th>Circuit</th>
+                                <th>Country</th>
+                                <th>Date</th>
                             </tr>
                         </thead>
-                        <tbody id="scheduleTbody">
-                            <tr class="loading-row"><td colspan="6">Loading schedule…</td></tr>
+                        <tbody>
+                        <?php if (empty($races)): ?>
+                            <tr class="empty-row"><td colspan="5">No races found.</td></tr>
+                        <?php else: ?>
+                            <?php foreach ($races as $r): ?>
+                                <tr>
+                                    <td class="pos"><?= htmlspecialchars($r->round) ?></td>
+                                    <td class="race"><?= htmlspecialchars($r->name) ?></td>
+                                    <td class="circuit"><?= htmlspecialchars($r->circuit) ?></td>
+                                    <td><?= htmlspecialchars($r->country) ?></td>
+                                    <td><?= htmlspecialchars($r->date) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
-            </div>
  
-        
-            <div id="tab-results" class="tab-panel">
-                <div class="controls">
-                    <input type="text" id="resultsSearch" placeholder="Search driver or team…" oninput="filterResults()">
-                    <select id="resultsYear" onchange="loadRounds()">
-                        <?php for ($y = (int)date('Y'); $y >= 2010; $y--): ?>
-                            <option value="<?= $y ?>" <?= $y == (int)date('Y') ? 'selected' : '' ?>><?= $y ?></option>
-                        <?php endfor; ?>
-                    </select>
-                    <select id="resultsRound" class="round-select" onchange="loadResults()">
-                        <option value="last">Last race</option>
-                    </select>
+            <?php
+            elseif ($tab === 'results'):
+ 
+                $results = [];
+                if (isset($xml->results->result)) {
+                    foreach ($xml->results->result as $r) {
+                        $name = $r->first_name . ' ' . $r->last_name;
+                        $team = (string)$r->team;
+                        if ($search !== '' && stripos($name, $search) === false && stripos($team, $search) === false) {
+                            continue;
+                        }
+                        $results[] = $r;
+                    }
+                }
+ 
+                $raceName = isset($xml->race) ? (string)$xml->race : '';
+            ?>
+                <div class="stats-bar">
+                    <?= count($results) ?> driver<?= count($results) === 1 ? '' : 's' ?>
+                    <?= $search !== '' ? ' matching "' . htmlspecialchars($search) . '"' : '' ?>
+                    <?= $raceName !== '' ? ' — ' . htmlspecialchars($raceName) . ' (' . $year . ')' : '' ?>
                 </div>
-                <div class="stats-bar" id="resultsBar"></div>
+ 
                 <div class="tbl-wrap">
                     <table>
                         <thead>
                             <tr>
-                                <th onclick="sortTable('results','position')" id="rth-position">POS <span class="arrow">↕</span></th>
-                                <th onclick="sortTable('results','driver')"   id="rth-driver">Driver <span class="arrow">↕</span></th>
-                                <th onclick="sortTable('results','team')"     id="rth-team">Team <span class="arrow">↕</span></th>
-                                <th onclick="sortTable('results','grid')"     id="rth-grid">Grid <span class="arrow">↕</span></th>
-                                <th onclick="sortTable('results','laps')"     id="rth-laps">Laps <span class="arrow">↕</span></th>
-                                <th onclick="sortTable('results','points')"   id="rth-points">PTS <span class="arrow">↕</span></th>
-                                <th onclick="sortTable('results','status')"   id="rth-status">Status <span class="arrow">↕</span></th>
-                                <th>Fastest Lap</th>
+                                <th>POS</th>
+                                <th>Driver</th>
+                                <th>Team</th>
+                                <th>Grid</th>
+                                <th>Laps</th>
+                                <th>PTS</th>
+                                <th>Status</th>
                             </tr>
                         </thead>
-                        <tbody id="resultsTbody">
-                            <tr class="loading-row"><td colspan="8">Loading results…</td></tr>
+                        <tbody>
+                        <?php if (empty($results)): ?>
+                            <tr class="empty-row"><td colspan="7">No results found.</td></tr>
+                        <?php else: ?>
+                            <?php foreach ($results as $r):
+                                $status = (string)$r->status;
+                                $statusClass = ($status === 'Finished' || strpos($status, '+') === 0) ? 'status-fin' : 'status-other';
+                            ?>
+                                <tr>
+                                    <td class="pos"><?= htmlspecialchars($r->position) ?></td>
+                                    <td class="driver">
+                                        <?= htmlspecialchars($r->first_name . ' ' . $r->last_name) ?>
+                                        <span style="color:#aaa;font-weight:normal;font-size:0.8em"><?= htmlspecialchars($r->code) ?></span>
+                                    </td>
+                                    <td class="team"><?= htmlspecialchars($r->team) ?></td>
+                                    <td><?= htmlspecialchars($r->grid) ?></td>
+                                    <td><?= htmlspecialchars($r->laps) ?></td>
+                                    <td class="pts"><?= htmlspecialchars($r->points) ?></td>
+                                    <td class="<?= $statusClass ?>"><?= htmlspecialchars($status) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
-            </div>
+ 
+            <?php endif; ?>
+ 
+            <?php endif; ?>
  
         </div>
     </main>
  
     <footer>
         <div class="footer-logo">
-            <span class="logo-text">F1 Stats</span>
+            <span class="logo-text">F1</span>
         </div>
-        <p class="footer-info">F1 Stats &nbsp;|&nbsp; Data: Jolpica F1 API &nbsp;|&nbsp; <?= date('Y') ?></p>
+        <p class="footer-info">F1 Stats <?= date('Y') ?></p>
     </footer>
  
-    <script>
-    
-    const state = {
-        standings: { data: [], sortCol: 'position', sortDir: 1 },
-        schedule:  { data: [], sortCol: 'round',    sortDir: 1 },
-        results:   { data: [], sortCol: 'position', sortDir: 1, raceName: '' },
-    };
- 
-    function switchTab(name, btn) {
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById('tab-' + name).classList.add('active');
-        btn.classList.add('active');
-        hideError();
-    }
- 
-    async function fetchXML(url) {
-        const res = await fetch(url);
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const text = await res.text();
-        return new DOMParser().parseFromString(text, 'application/xml');
-    }
- 
-    function xmlText(node, tag) {
-        const el = node.querySelector(tag);
-        return el ? el.textContent.trim() : '';
-    }
- 
-    async function loadStandings() {
-        const year = document.getElementById('standingsYear').value;
-        setLoading('standingsTbody', 6);
-        hideError();
-        try {
-            const doc  = await fetchXML(`f1api.php?type=standings&year=${year}`);
-            const nodes = doc.querySelectorAll('driver');
-            state.standings.data = Array.from(nodes).map(n => ({
-                position:    +xmlText(n, 'position'),
-                driver:      xmlText(n, 'first_name') + ' ' + xmlText(n, 'last_name'),
-                code:        xmlText(n, 'code'),
-                team:        xmlText(n, 'team'),
-                points:      +xmlText(n, 'points'),
-                wins:        +xmlText(n, 'wins'),
-                nationality: xmlText(n, 'nationality'),
-            }));
-            filterStandings();
-        } catch(e) {
-            showError('Could not load standings. ' + e.message);
-            setEmpty('standingsTbody', 6);
-        }
-    }
- 
-    function filterStandings() {
-        const q = document.getElementById('standingsSearch').value.toLowerCase();
-        let rows = state.standings.data.filter(r =>
-            !q || r.driver.toLowerCase().includes(q) || r.team.toLowerCase().includes(q) || r.nationality.toLowerCase().includes(q)
-        );
-        rows = applySort(rows, state.standings);
-        document.getElementById('standingsBar').textContent =
-            rows.length + ' driver' + (rows.length !== 1 ? 's' : '') +
-            (rows.length !== state.standings.data.length ? ' (filtered from ' + state.standings.data.length + ')' : '');
-        const tbody = document.getElementById('standingsTbody');
-        if (!rows.length) { setEmpty('standingsTbody', 6); return; }
-        tbody.innerHTML = rows.map(r => {
-            const medal = r.position === 1 ? 'medal-1' : r.position === 2 ? 'medal-2' : r.position === 3 ? 'medal-3' : '';
-            return `<tr>
-                <td class="pos ${medal}">${r.position}</td>
-                <td class="driver">${esc(r.driver)} <span style="color:#aaa;font-weight:normal;font-size:0.8em">${esc(r.code)}</span></td>
-                <td class="team">${esc(r.team)}</td>
-                <td class="pts">${r.points}</td>
-                <td>${r.wins}</td>
-                <td>${esc(r.nationality)}</td>
-            </tr>`;
-        }).join('');
-    }
- 
-    async function loadSchedule() {
-        const year = document.getElementById('scheduleYear').value;
-        setLoading('scheduleTbody', 6);
-        hideError();
-        try {
-            const doc   = await fetchXML(`f1api.php?type=schedule&year=${year}`);
-            const nodes = doc.querySelectorAll('race');
-            state.schedule.data = Array.from(nodes).map(n => ({
-                round:   +xmlText(n, 'round'),
-                name:    xmlText(n, 'name'),
-                circuit: xmlText(n, 'circuit'),
-                country: xmlText(n, 'country'),
-                date:    xmlText(n, 'date'),
-                sprint:  xmlText(n, 'sprint_date'),
-            }));
-            filterSchedule();
-        } catch(e) {
-            showError('Could not load schedule. ' + e.message);
-            setEmpty('scheduleTbody', 6);
-        }
-    }
- 
-    function filterSchedule() {
-        const q = document.getElementById('scheduleSearch').value.toLowerCase();
-        const today = new Date().toISOString().slice(0,10);
-        let rows = state.schedule.data.filter(r =>
-            !q || r.name.toLowerCase().includes(q) || r.circuit.toLowerCase().includes(q) || r.country.toLowerCase().includes(q)
-        );
-        rows = applySort(rows, state.schedule);
-        document.getElementById('scheduleBar').textContent =
-            rows.length + ' race' + (rows.length !== 1 ? 's' : '') +
-            (rows.length !== state.schedule.data.length ? ' (filtered from ' + state.schedule.data.length + ')' : '');
-        const tbody = document.getElementById('scheduleTbody');
-        if (!rows.length) { setEmpty('scheduleTbody', 6); return; }
-        tbody.innerHTML = rows.map(r => {
-            const isPast   = r.date && r.date < today;
-            const isNext   = !isPast && rows.find(x => x.date >= today)?.round === r.round;
-            const rowStyle = isNext ? 'background:#fdf0f0;' : '';
-            const dateStr  = r.date ? formatDate(r.date) : 'TBA';
-            return `<tr style="${rowStyle}">
-                <td class="pos">${r.round}</td>
-                <td class="race">${esc(r.name)}${isNext ? ' <span style="color:#e10600;font-size:0.75em">▶ NEXT</span>' : ''}</td>
-                <td class="circuit">${esc(r.circuit)}</td>
-                <td>${esc(r.country)}</td>
-                <td style="color:${isPast ? '#aaa' : '#222'}">${dateStr}</td>
-                <td style="color:#888;font-size:0.82em">${r.sprint ? formatDate(r.sprint) : '—'}</td>
-            </tr>`;
-        }).join('');
-    }
- 
-    async function loadRounds() {
-        const year = document.getElementById('resultsYear').value;
-        try {
-            const doc   = await fetchXML(`f1api.php?type=schedule&year=${year}`);
-            const nodes = doc.querySelectorAll('race');
-            const sel   = document.getElementById('resultsRound');
-            sel.innerHTML = '<option value="last">Last race</option>';
-            Array.from(nodes).forEach(n => {
-                const round = xmlText(n, 'round');
-                const name  = xmlText(n, 'name');
-                const opt   = document.createElement('option');
-                opt.value       = round;
-                opt.textContent = 'Round ' + round + ' — ' + name;
-                sel.appendChild(opt);
-            });
-        } catch(e) { /* keep default */ }
-        loadResults();
-    }
- 
-    async function loadResults() {
-        const year  = document.getElementById('resultsYear').value;
-        const round = document.getElementById('resultsRound').value;
-        const path  = round === 'last'
-            ? `f1api.php?type=results&year=${year}`
-            : `f1api.php?type=results&year=${year}&round=${round}`;
-        setLoading('resultsTbody', 8);
-        hideError();
-        try {
-            const doc   = await fetchXML(path);
-            state.results.raceName = xmlText(doc.documentElement, 'race') + ' ' + xmlText(doc.documentElement, 'season');
-            const nodes = doc.querySelectorAll('result');
-            state.results.data = Array.from(nodes).map(n => ({
-                position:    +xmlText(n, 'position'),
-                driver:      xmlText(n, 'first_name') + ' ' + xmlText(n, 'last_name'),
-                code:        xmlText(n, 'code'),
-                team:        xmlText(n, 'team'),
-                grid:        +xmlText(n, 'grid'),
-                laps:        +xmlText(n, 'laps'),
-                points:      +xmlText(n, 'points'),
-                status:      xmlText(n, 'status'),
-                fl_time:     xmlText(n, 'fastest_lap time') || xmlText(n, 'time'),
-                fl_rank:     xmlText(n, 'fastest_lap rank') || xmlText(n, 'rank'),
-            }));
-            filterResults();
-        } catch(e) {
-            showError('Could not load results. ' + e.message);
-            setEmpty('resultsTbody', 8);
-        }
-    }
- 
-    function filterResults() {
-        const q = document.getElementById('resultsSearch').value.toLowerCase();
-        let rows = state.results.data.filter(r =>
-            !q || r.driver.toLowerCase().includes(q) || r.team.toLowerCase().includes(q) || r.status.toLowerCase().includes(q)
-        );
-        rows = applySort(rows, state.results);
-        const label = state.results.raceName ? ' — ' + state.results.raceName : '';
-        document.getElementById('resultsBar').textContent =
-            rows.length + ' driver' + (rows.length !== 1 ? 's' : '') + label +
-            (rows.length !== state.results.data.length ? ' (filtered from ' + state.results.data.length + ')' : '');
-        const tbody = document.getElementById('resultsTbody');
-        if (!rows.length) { setEmpty('resultsTbody', 8); return; }
-        tbody.innerHTML = rows.map(r => {
-            const medal   = r.position === 1 ? 'medal-1' : r.position === 2 ? 'medal-2' : r.position === 3 ? 'medal-3' : '';
-            const finCls  = r.status === 'Finished' || r.status.startsWith('+') ? 'status-fin' : 'status-other';
-            const flBadge = r.fl_rank === '1'
-                ? `<span style="color:#e10600;font-weight:bold">${esc(r.fl_time)}</span>`
-                : (r.fl_time ? esc(r.fl_time) : '—');
-            return `<tr>
-                <td class="pos ${medal}">${r.position}</td>
-                <td class="driver">${esc(r.driver)} <span style="color:#aaa;font-weight:normal;font-size:0.8em">${esc(r.code)}</span></td>
-                <td class="team">${esc(r.team)}</td>
-                <td>${r.grid}</td>
-                <td>${r.laps}</td>
-                <td class="pts">${r.points}</td>
-                <td class="${finCls}">${esc(r.status)}</td>
-                <td style="font-size:0.82em">${flBadge}</td>
-            </tr>`;
-        }).join('');
-    }
- 
-    function sortTable(tab, col) {
-        const s = state[tab];
-        s.sortDir = (s.sortCol === col) ? s.sortDir * -1 : 1;
-        s.sortCol = col;
-        document.querySelectorAll(`#tab-${tab} thead th`).forEach(th => th.classList.remove('sorted'));
-        const prefix = tab === 'standings' ? 'sth-' : tab === 'schedule' ? 'scth-' : 'rth-';
-        const th = document.getElementById(prefix + col);
-        if (th) th.classList.add('sorted');
-        if (tab === 'standings') filterStandings();
-        else if (tab === 'schedule') filterSchedule();
-        else filterResults();
-    }
- 
-    function applySort(rows, s) {
-        return rows.slice().sort((a, b) => {
-            let va = a[s.sortCol] ?? '', vb = b[s.sortCol] ?? '';
-            if (typeof va === 'number') return (va - vb) * s.sortDir;
-            return va.toString().localeCompare(vb.toString()) * s.sortDir;
-        });
-    }
- 
-    function setLoading(id, cols) {
-        document.getElementById(id).innerHTML =
-            `<tr class="loading-row"><td colspan="${cols}">Loading…</td></tr>`;
-    }
- 
-    function setEmpty(id, cols) {
-        document.getElementById(id).innerHTML =
-            `<tr class="empty-row"><td colspan="${cols}">No data found.</td></tr>`;
-    }
- 
-    function showError(msg) {
-        const el = document.getElementById('errorBanner');
-        el.textContent = '⚠ ' + msg;
-        el.style.display = 'block';
-    }
- 
-    function hideError() {
-        document.getElementById('errorBanner').style.display = 'none';
-    }
- 
-    function esc(str) {
-        return String(str || '')
-            .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-            .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
- 
-    function formatDate(iso) {
-        if (!iso) return '';
-        const [y, m, d] = iso.split('-');
-        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-        return `${+d} ${months[+m-1]} ${y}`;
-    }
- 
-    loadStandings();
-    loadSchedule();
-    loadRounds();
-    </script>
- 
 </body>
-</html
+</html>
