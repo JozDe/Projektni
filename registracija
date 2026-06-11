@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 News - Registration</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+ 
+    <header>
+        <div class="header-logo">
+            <span class="logo-text">F1 News</span>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.php" class="active">HOME</a></li>
+                <li><a href="F1stats.php">STATS</a></li>
+                <li><a href="administracija.php">ADMINISTRATION</a></li>
+                <li><a href="Unos.php">ADD NEWS</a></li>
+            </ul>
+        </nav>
+    </header>
+ 
+    <main>
+        <div class="article-page-wrapper">
+            <h2 class="article-category">REGISTRATION</h2>
+            <div class="article-card">
+ 
+            <?php
+            session_start();
+            include 'connect.php';
+ 
+            $msg            = '';
+            $registriranKorisnik = false;
+ 
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username'])) {
+ 
+                $ime      = $_POST['ime'];
+                $prezime  = $_POST['prezime'];
+                $username = $_POST['username'];
+                $lozinka  = $_POST['pass'];
+                $lozinka2 = $_POST['passRep'];
+ 
+                if ($lozinka !== $lozinka2) {
+                    $msg = 'Passwords do not match!';
+                } elseif (strlen($lozinka) < 4) {
+                    $msg = 'Password must be at least 4 characters.';
+                } else {
+                    $hashed_password = password_hash($lozinka, PASSWORD_BCRYPT);
+                    $razina = 0;
+ 
+                    $sql  = "SELECT korisnicko_ime FROM korisnik WHERE korisnicko_ime = ?";
+                    $stmt = mysqli_stmt_init($dbc);
+                    if (mysqli_stmt_prepare($stmt, $sql)) {
+                        mysqli_stmt_bind_param($stmt, 's', $username);
+                        mysqli_stmt_execute($stmt);
+                        mysqli_stmt_store_result($stmt);
+                    }
+ 
+                    if (mysqli_stmt_num_rows($stmt) > 0) {
+                        $msg = 'Username already exists! Please choose another.';
+                    } else {
+                        $sql  = "INSERT INTO korisnik (ime, prezime, korisnicko_ime, lozinka, razina)
+                                 VALUES (?, ?, ?, ?, ?)";
+                        $stmt = mysqli_stmt_init($dbc);
+                        if (mysqli_stmt_prepare($stmt, $sql)) {
+                            mysqli_stmt_bind_param($stmt, 'ssssi',
+                                $ime, $prezime, $username, $hashed_password, $razina);
+                            mysqli_stmt_execute($stmt);
+                            $registriranKorisnik = true;
+                        }
+                    }
+                }
+ 
+                mysqli_close($dbc);
+            }
+ 
+            if ($registriranKorisnik === true) {
+                echo '<p class="success-msg">&#10003; User successfully registered!
+                      <a href="administracija.php">Log in</a></p>';
+            } else {
+            ?>
+ 
+                <?php if (!empty($msg)): ?>
+                    <p class="error-msg">&#9888; <?php echo htmlspecialchars($msg); ?></p>
+                <?php endif; ?>
+ 
+                <form enctype="multipart/form-data" action="registracija.php" method="POST" id="regForma">
+ 
+                    <div class="form-item">
+                        <span id="porukaIme" class="bojaPoruke"></span>
+                        <label for="ime">First name</label>
+                        <div class="form-field">
+                            <input type="text" name="ime" id="ime" class="form-field-textual" autofocus>
+                        </div>
+                    </div>
+ 
+                    <div class="form-item">
+                        <span id="porukaPrezime" class="bojaPoruke"></span>
+                        <label for="prezime">Last name</label>
+                        <div class="form-field">
+                            <input type="text" name="prezime" id="prezime" class="form-field-textual">
+                        </div>
+                    </div>
+ 
+                    <div class="form-item">
+                        <span id="porukaUsername" class="bojaPoruke"></span>
+                        <label for="username">Username</label>
+                        <div class="form-field">
+                            <input type="text" name="username" id="username" class="form-field-textual">
+                        </div>
+                    </div>
+ 
+                    <div class="form-item">
+                        <span id="porukaPass" class="bojaPoruke"></span>
+                        <label for="pass">Password</label>
+                        <div class="form-field">
+                            <input type="password" name="pass" id="pass" class="form-field-textual">
+                        </div>
+                    </div>
+ 
+                    <div class="form-item">
+                        <span id="porukaPassRep" class="bojaPoruke"></span>
+                        <label for="passRep">Repeat password</label>
+                        <div class="form-field">
+                            <input type="password" name="passRep" id="passRep" class="form-field-textual">
+                        </div>
+                    </div>
+ 
+                    <div class="form-item form-item-buttons">
+                        <button type="reset" class="btn-reset">Reset</button>
+                        <button type="submit" id="slanje" class="btn-submit">Register</button>
+                    </div>
+ 
+                </form>
+ 
+            <?php } ?>
+ 
+            </div>
+        </div>
+    </main>
+ 
+    <footer>
+        <div class="footer-logo">
+            <span class="logo-text">F1 News</span>
+        </div>
+        <p class="footer-info">F1 News &nbsp;|&nbsp; info@f1news.com &nbsp;|&nbsp; 2024</p>
+    </footer>
+ 
+    <script type="text/javascript">
+    document.getElementById("slanje").onclick = function(event) {
+        var ok = true;
+ 
+        var poljeIme = document.getElementById("ime");
+        if (poljeIme.value.trim().length === 0) {
+            ok = false;
+            poljeIme.style.border = "1px dashed red";
+            document.getElementById("porukaIme").innerHTML = "<br>Please enter your first name!<br>";
+        } else {
+            poljeIme.style.border = "1px solid green";
+            document.getElementById("porukaIme").innerHTML = "";
+        }
+ 
+        var poljePrezime = document.getElementById("prezime");
+        if (poljePrezime.value.trim().length === 0) {
+            ok = false;
+            poljePrezime.style.border = "1px dashed red";
+            document.getElementById("porukaPrezime").innerHTML = "<br>Please enter your last name!<br>";
+        } else {
+            poljePrezime.style.border = "1px solid green";
+            document.getElementById("porukaPrezime").innerHTML = "";
+        }
+ 
+        var poljeUser = document.getElementById("username");
+        if (poljeUser.value.trim().length === 0) {
+            ok = false;
+            poljeUser.style.border = "1px dashed red";
+            document.getElementById("porukaUsername").innerHTML = "<br>Please enter a username!<br>";
+        } else {
+            poljeUser.style.border = "1px solid green";
+            document.getElementById("porukaUsername").innerHTML = "";
+        }
+ 
+        var pass    = document.getElementById("pass");
+        var passRep = document.getElementById("passRep");
+        if (pass.value.length === 0 || passRep.value.length === 0 || pass.value !== passRep.value) {
+            ok = false;
+            pass.style.border    = "1px dashed red";
+            passRep.style.border = "1px dashed red";
+            document.getElementById("porukaPass").innerHTML    = "<br>Passwords do not match!<br>";
+            document.getElementById("porukaPassRep").innerHTML = "<br>Passwords do not match!<br>";
+        } else {
+            pass.style.border    = "1px solid green";
+            passRep.style.border = "1px solid green";
+            document.getElementById("porukaPass").innerHTML    = "";
+            document.getElementById("porukaPassRep").innerHTML = "";
+        }
+ 
+        if (!ok) event.preventDefault();
+    };
+    </script>
+ 
+</body>
+</html>
