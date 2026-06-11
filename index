@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 News - Home</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+ 
+<?php include 'connect.php'; ?>
+ 
+    <header>
+        <div class="header-logo">
+            <span class="logo-text">F1 News</span>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.php" class="active">HOME</a></li>
+                <li><a href="F1stats.php">STATS</a></li>
+                <li><a href="administracija.php">ADMINISTRATION</a></li>
+                <li><a href="Unos.php">ADD NEWS</a></li>
+            </ul>
+        </nav>
+    </header>
+ 
+    <main>
+        <section id="Circuit">
+            <h2>DRIVERS</h2>
+            <div class="articles-grid">
+            <?php
+                $query  = "SELECT * FROM vijesti WHERE kategorija='F1' ORDER BY id DESC LIMIT 3";
+                $result = mysqli_query($dbc, $query);
+ 
+                if (mysqli_num_rows($result) > 0) {
+                    while ($row = mysqli_fetch_array($result)) {
+                        echo '<article>';
+                        if (!empty($row['slika'])) {
+                            echo '<a href="clanak.php?id=' . $row['id'] . '">';
+                            echo '<img src="img/' . htmlspecialchars($row['slika']) . '" alt="' . htmlspecialchars($row['naslov']) . '">';
+                            echo '</a>';
+                        }
+                        echo '<h3><a href="clanak.php?id=' . $row['id'] . '">' . htmlspecialchars($row['naslov']) . '</a></h3>';
+                        echo '<p>' . htmlspecialchars($row['sazetak']) . '</p>';
+                        echo '<time>' . htmlspecialchars($row['datum']) . '</time>';
+                        echo '</article>';
+                    }
+                } else {
+                    echo '<p class="no-news">No articles in this category.</p>';
+                }
+            ?>
+            </div>
+        </section>
+        <section id="Circuit">
+            <h2>CIRCUITS</h2>
+            <div class="articles-grid">
+            <?php
+                $query  = "SELECT * FROM vijesti WHERE kategorija='Circuit' ORDER BY id DESC LIMIT 3";
+                $result = mysqli_query($dbc, $query);
+ 
+                if (mysqli_num_rows($result) > 0) {
+                    while ($row = mysqli_fetch_array($result)) {
+                        echo '<article>';
+                        if (!empty($row['slika'])) {
+                            echo '<a href="clanak.php?id=' . $row['id'] . '">';
+                            echo '<img src="img/' . htmlspecialchars($row['slika']) . '" alt="' . htmlspecialchars($row['naslov']) . '">';
+                            echo '</a>';
+                        }
+                        echo '<h3><a href="clanak.php?id=' . $row['id'] . '">' . htmlspecialchars($row['naslov']) . '</a></h3>';
+                        echo '<p>' . htmlspecialchars($row['sazetak']) . '</p>';
+                        echo '<time>' . htmlspecialchars($row['datum']) . '</time>';
+                        echo '</article>';
+                    }
+                } else {
+                    echo '<p class="no-news">No articles in this category.</p>';
+                }
+            ?>
+            </div>
+        </section>
+ 
+    </main>
+ 
+    <footer>
+        <div class="footer-logo">
+            <span class="logo-text">F1 News</span>
+        </div>
+        <p class="footer-info">F1 News 2026</p>
+    </footer>
+
+</body>
+</html>
+ 
