@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 News - Add Article</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+ 
+    <header>
+        <div class="header-logo">
+            <span class="logo-text">F1 News</span>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.php" class="active">HOME</a></li>
+                <li><a href="F1stats.php">STATS</a></li>
+                <li><a href="administracija.php">ADMINISTRATION</a></li>
+                <li><a href="Unos.php">ADD NEWS</a></li>
+            </ul>
+        </nav>
+    </header>
+ 
+    <main>
+        <div class="article-page-wrapper">
+            <h2 class="article-category">ADD ARTICLE</h2>
+            <div class="article-card">
+ 
+            <?php
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['title'])) {
+                include 'connect.php';
+ 
+                $title    = mysqli_real_escape_string($dbc, $_POST['title']);
+                $about    = mysqli_real_escape_string($dbc, $_POST['about']);
+                $content  = mysqli_real_escape_string($dbc, $_POST['content']);
+                $category = mysqli_real_escape_string($dbc, $_POST['category']);
+                $date     = date('d.m.Y.');
+                $archive  = isset($_POST['archive']) ? 1 : 0;
+ 
+                $picture = '';
+                if (isset($_FILES['pphoto']) && $_FILES['pphoto']['error'] === 0) {
+                    $picture    = basename($_FILES['pphoto']['name']);
+                    $target_dir = 'img/' . $picture;
+                    if (!is_dir('img')) {
+                        mkdir('img', 0755, true);
+                    }
+                    move_uploaded_file($_FILES['pphoto']['tmp_name'], $target_dir);
+                }
+ 
+                $query  = "INSERT INTO vijesti (datum, naslov, sazetak, tekst, kategorija)
+                           VALUES ('$date', '$title', '$about', '$content', '$category')";
+                $result = mysqli_query($dbc, $query) or die('Database error: ' . mysqli_error($dbc));
+ 
+                mysqli_close($dbc);
+ 
+                echo '<p class="success-msg">&#10003; Article successfully saved! <a href="index.php">Back to home</a></p>';
+            }
+            ?>
+ 
+                <form name="unosVijesti" action="unos.php" method="POST" enctype="multipart/form-data" autocomplete="on">
+ 
+                    <div class="form-item">
+                        <label for="title">Article title</label>
+                        <div class="form-field">
+                            <input type="text" id="title" name="title" class="form-field-textual" autofocus required>
+                        </div>
+                    </div>
+ 
+                    <div class="form-item">
+                        <label for="about">Short summary (up to 50 characters)</label>
+                        <div class="form-field">
+                            <textarea name="about" id="about" cols="30" rows="4" class="form-field-textual"></textarea>
+                        </div>
+                    </div>
+ 
+                    <div class="form-item">
+                        <label for="content">Article content</label>
+                        <div class="form-field">
+                            <textarea name="content" id="content" cols="30" rows="10" class="form-field-textual"></textarea>
+                        </div>
+                    </div>
+ 
+                    <div class="form-item">
+                        <label for="category">Category</label>
+                        <div class="form-field">
+                            <select name="category" id="category" class="form-field-textual">
+                                <option value="F1">Drivers</option>
+                                <option value="Circuit">Circuits</option>
+                            </select>
+                        </div>
+                    </div>
+ 
+                    <div class="form-item form-item-buttons">
+                        <button type="reset" class="btn-reset">Reset</button>
+                        <button type="submit" class="btn-submit">Submit</button>
+                    </div>
+ 
+                </form>
+            </div>
+        </div>
+    </main>
+ 
+    <footer>
+        <div class="footer-logo">
+            <span class="logo-text">F1 News</span>
+        </div>
+        <p class="footer-info">F1 News 2026</p>
+    </footer>
+ 
+</body>
+</html>
