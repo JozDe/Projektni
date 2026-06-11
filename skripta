@@ -68,10 +68,8 @@ if (isset($_FILES['pphoto']) && $_FILES['pphoto']['error'] === 0) {
 }
  
 $category_labels = [
-    'beruf-karriere' => 'Drivers',
-    'food'           => 'Circuits',
-    'sport'          => 'Sport',
-    'kultura'        => 'Culture',
+    'F1' => 'Drivers',
+    'Circuit'           => 'Circuits',
 ];
 $category_display = isset($category_labels[$category]) ? $category_labels[$category] : htmlspecialchars($category);
  
