@@ -97,9 +97,9 @@ $cat_display = ($row && isset($category_labels[$row['kategorija']]))
  
     <footer>
         <div class="footer-logo">
-            <span class="logo-text">F1 News</span>
+            <span class="logo-text">F1</span>
         </div>
-        <p class="footer-info">F1 News &nbsp;|&nbsp; info@f1news.com &nbsp;|&nbsp; 2024</p>
+        <p class="footer-info">F1 News 2026</p>
     </footer>
  
 <?php mysqli_close($dbc); ?>
