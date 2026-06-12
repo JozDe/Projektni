@@ -44,8 +44,8 @@ if ($xml === false) {
             <ul>
                 <li><a href="index.php" class="active">HOME</a></li>
                 <li><a href="F1stats.php">STATS</a></li>
-                <li><a href="administracija.php">ADMINISTRATION</a></li>
-                <li><a href="Unos.php">ADD NEWS</a></li>
+                <li><a href="admin.php">ADMINISTRATION</a></li>
+                <li><a href="add.php">ADD NEWS</a></li>
             </ul>
         </nav>
     </header>
