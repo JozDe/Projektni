@@ -16,8 +16,8 @@
             <ul>
                 <li><a href="index.php" class="active">HOME</a></li>
                 <li><a href="F1stats.php">STATS</a></li>
-                <li><a href="administracija.php">ADMINISTRATION</a></li>
-                <li><a href="Unos.php">ADD NEWS</a></li>
+                <li><a href="admin.php">ADMINISTRATION</a></li>
+                <li><a href="add.php">ADD NEWS</a></li>
             </ul>
         </nav>
     </header>
@@ -78,7 +78,7 @@
  
             if ($registriranKorisnik === true) {
                 echo '<p class="success-msg">&#10003; User successfully registered!
-                      <a href="administracija.php">Log in</a></p>';
+                      <a href="admin.php">Log in</a></p>';
             } else {
             ?>
  
@@ -86,7 +86,7 @@
                     <p class="error-msg">&#9888; <?php echo htmlspecialchars($msg); ?></p>
                 <?php endif; ?>
  
-                <form enctype="multipart/form-data" action="registracija.php" method="POST" id="regForma">
+                <form enctype="multipart/form-data" action="register.php" method="POST" id="regForma">
  
                     <div class="form-item">
                         <span id="porukaIme" class="bojaPoruke"></span>
