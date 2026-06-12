@@ -20,7 +20,7 @@ $imeKorisnika    = '';
 
 if (isset($_GET['logout'])) {
     session_destroy();
-    header('Location: administracija.php');
+    header('Location: admin.php');
     exit;
 }
 
@@ -98,8 +98,8 @@ if ($admin && isset($_POST['update'])) {
             <ul>
                 <li><a href="index.php" class="active">HOME</a></li>
                 <li><a href="F1stats.php">STATS</a></li>
-                <li><a href="administracija.php">ADMINISTRATION</a></li>
-                <li><a href="Unos.php">ADD NEWS</a></li>
+                <li><a href="admin.php">ADMINISTRATION</a></li>
+                <li><a href="add.php">ADD NEWS</a></li>
             </ul>
         </nav>
     </header>
@@ -113,7 +113,7 @@ if ($uspjesnaPrijava && $admin):
             <div class="admin-top-bar">
                 <h2 class="article-category">ADMINISTRATION</h2>
                 <span>Logged in as: <strong><?php echo htmlspecialchars($imeKorisnika); ?></strong></span>
-                <a href="administracija.php?logout=1" class="btn-logout">Log out</a>
+                <a href="admin.php?logout=1" class="btn-logout">Log out</a>
             </div>
  
             <?php
@@ -134,7 +134,7 @@ if ($uspjesnaPrijava && $admin):
                     <span class="admin-entry-cat"><?php echo htmlspecialchars($row['kategorija']); ?></span>
                 </div>
  
-                <form enctype="multipart/form-data" action="administracija.php" method="POST" class="admin-form article-card">
+                <form enctype="multipart/form-data" action="admin.php" method="POST" class="admin-form article-card">
                     <input type="hidden" name="id"             value="<?php echo $row['id']; ?>">
  
                     <div class="form-item">
@@ -188,7 +188,7 @@ elseif ($uspjesnaPrijava && !$admin):
                     Hello <strong><?php echo htmlspecialchars($imeKorisnika); ?></strong>!
                     You are logged in, but you do not have administrator rights to access this page.
                 </p>
-                <a href="administracija.php?logout=1" class="back-link">Log out</a>
+                <a href="admin.php?logout=1" class="back-link">Log out</a>
             </div>
  
 <?php
@@ -200,11 +200,11 @@ else:
                 <?php if (isset($_POST['prijava']) && !$uspjesnaPrijava): ?>
                     <p class="error-msg">
                         &#9888; Incorrect username or password.
-                        Not registered? <a href="registracija.php">Register here.</a>
+                        Not registered? <a href="register.php">Register here.</a>
                     </p>
                 <?php endif; ?>
  
-                <form action="administracija.php" method="POST" id="loginForma">
+                <form action="admin.php" method="POST" id="loginForma">
  
                     <div class="form-item">
                         <span id="porukaUser" class="bojaPoruke"></span>
@@ -228,7 +228,7 @@ else:
                         <button type="submit" name="prijava" value="1" id="loginBtn" class="btn-submit">
                             Login
                         </button>
-                        <a href="registracija.php" class="btn-reset" style="padding:10px 20px;display:inline-block;text-align:center;">
+                        <a href="register.php" class="btn-reset" style="padding:10px 20px;display:inline-block;text-align:center;">
                             Register
                         </a>
                     </div>
