@@ -16,8 +16,8 @@
             <ul>
                 <li><a href="index.php" class="active">HOME</a></li>
                 <li><a href="F1stats.php">STATS</a></li>
-                <li><a href="administracija.php">ADMINISTRATION</a></li>
-                <li><a href="Unos.php">ADD NEWS</a></li>
+                <li><a href="admin.php">ADMINISTRATION</a></li>
+                <li><a href="add.php">ADD NEWS</a></li>
             </ul>
         </nav>
     </header>
@@ -75,7 +75,7 @@ $category_display = isset($category_labels[$category]) ? $category_labels[$categ
  
 if (empty($title) && empty($content)) {
     echo '<div class="article-card" style="padding:30px;">';
-    echo '<p>No data entered. <a href="Unos.php">Go back to add news.</a></p>';
+    echo '<p>No data entered. <a href="add.php">Go back to add news.</a></p>';
     echo '</div>';
 } else {
  
@@ -113,7 +113,7 @@ if (empty($title) && empty($content)) {
                     </section>
                     <?php endif; ?>
  
-                    <a href="Unos.php" class="back-link">&larr; Add another article</a>
+                    <a href="add.php" class="back-link">&larr; Add another article</a>
  
                 </section>
             </div>
