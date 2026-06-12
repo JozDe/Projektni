@@ -18,8 +18,8 @@
             <ul>
                 <li><a href="index.php" class="active">HOME</a></li>
                 <li><a href="F1stats.php">STATS</a></li>
-                <li><a href="administracija.php">ADMINISTRATION</a></li>
-                <li><a href="Unos.php">ADD NEWS</a></li>
+                <li><a href="admin.php">ADMINISTRATION</a></li>
+                <li><a href="add.php">ADD NEWS</a></li>
             </ul>
         </nav>
     </header>
@@ -36,11 +36,11 @@
                     while ($row = mysqli_fetch_array($result)) {
                         echo '<article>';
                         if (!empty($row['slika'])) {
-                            echo '<a href="clanak.php?id=' . $row['id'] . '">';
+                            echo '<a href="article.php?id=' . $row['id'] . '">';
                             echo '<img src="img/' . htmlspecialchars($row['slika']) . '" alt="' . htmlspecialchars($row['naslov']) . '">';
                             echo '</a>';
                         }
-                        echo '<h3><a href="clanak.php?id=' . $row['id'] . '">' . htmlspecialchars($row['naslov']) . '</a></h3>';
+                        echo '<h3><a href="article.php?id=' . $row['id'] . '">' . htmlspecialchars($row['naslov']) . '</a></h3>';
                         echo '<p>' . htmlspecialchars($row['sazetak']) . '</p>';
                         echo '<time>' . htmlspecialchars($row['datum']) . '</time>';
                         echo '</article>';
@@ -62,11 +62,11 @@
                     while ($row = mysqli_fetch_array($result)) {
                         echo '<article>';
                         if (!empty($row['slika'])) {
-                            echo '<a href="clanak.php?id=' . $row['id'] . '">';
+                            echo '<a href="article.php?id=' . $row['id'] . '">';
                             echo '<img src="img/' . htmlspecialchars($row['slika']) . '" alt="' . htmlspecialchars($row['naslov']) . '">';
                             echo '</a>';
                         }
-                        echo '<h3><a href="clanak.php?id=' . $row['id'] . '">' . htmlspecialchars($row['naslov']) . '</a></h3>';
+                        echo '<h3><a href="article.php?id=' . $row['id'] . '">' . htmlspecialchars($row['naslov']) . '</a></h3>';
                         echo '<p>' . htmlspecialchars($row['sazetak']) . '</p>';
                         echo '<time>' . htmlspecialchars($row['datum']) . '</time>';
                         echo '</article>';
@@ -89,4 +89,3 @@
 
 </body>
 </html>
- 
