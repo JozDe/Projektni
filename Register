@@ -15,6 +15,8 @@
         <nav>
             <ul>
                 <li><a href="index.php" class="active">HOME</a></li>
+                <li><a href="kategorija.php?kategorija=F1">DRIVERS</a></li>
+                <li><a href="kategorija.php?kategorija=Circuit">CIRCUITS</a></li>
                 <li><a href="F1stats.php">STATS</a></li>
                 <li><a href="admin.php">ADMINISTRATION</a></li>
                 <li><a href="add.php">ADD NEWS</a></li>
@@ -145,7 +147,7 @@
         <div class="footer-logo">
             <span class="logo-text">F1 News</span>
         </div>
-        <p class="footer-info">F1 News &nbsp;|&nbsp; info@f1news.com &nbsp;|&nbsp; 2024</p>
+        <p class="footer-info">Ime Prezime &nbsp;|&nbsp; info@f1news.com &nbsp;|&nbsp; 2026</p>
     </footer>
  
     <script type="text/javascript">
