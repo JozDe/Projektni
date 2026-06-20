@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>F1 News - Category</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+ 
+<?php
+include 'connect.php';
+ 
+$category_labels = [
+    'F1'      => 'Drivers',
+    'Circuit' => 'Circuits',
+];
+ 
+$kategorija = isset($_GET['kategorija']) ? $_GET['kategorija'] : '';
+ 
+if (!array_key_exists($kategorija, $category_labels)) {
+    $kategorija = 'F1';
+}
+ 
+$cat_display = $category_labels[$kategorija];
+ 
+$sql  = "SELECT * FROM vijesti WHERE kategorija = ? AND arhiva = 0 ORDER BY id DESC";
+$stmt = mysqli_stmt_init($dbc);
+if (mysqli_stmt_prepare($stmt, $sql)) {
+    mysqli_stmt_bind_param($stmt, 's', $kategorija);
+    mysqli_stmt_execute($stmt);
+    $result = mysqli_stmt_get_result($stmt);
+} else {
+    $result = false;
+}
+?>
+ 
+    <header>
+        <div class="header-logo">
+            <span class="logo-text">F1 News</span>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="index.php">HOME</a></li>
+                <li><a href="kategorija.php?kategorija=F1" class="<?php echo $kategorija === 'F1' ? 'active' : ''; ?>">DRIVERS</a></li>
+                <li><a href="kategorija.php?kategorija=Circuit" class="<?php echo $kategorija === 'Circuit' ? 'active' : ''; ?>">CIRCUITS</a></li>
+                <li><a href="F1stats.php">STATS</a></li>
+                <li><a href="admin.php">ADMINISTRATION</a></li>
+                <li><a href="add.php">ADD NEWS</a></li>
+            </ul>
+        </nav>
+    </header>
+ 
+    <main>
+        <section>
+            <h2><?php echo htmlspecialchars(strtoupper($cat_display)); ?></h2>
+            <div class="articles-grid">
+            <?php
+                if ($result && mysqli_num_rows($result) > 0) {
+                    while ($row = mysqli_fetch_array($result)) {
+                        echo '<article>';
+                        if (!empty($row['slika'])) {
+                            echo '<a href="article.php?id=' . $row['id'] . '">';
+                            echo '<img src="img/' . htmlspecialchars($row['slika']) . '" alt="' . htmlspecialchars($row['naslov']) . '">';
+                            echo '</a>';
+                        }
+                        echo '<h3><a href="article.php?id=' . $row['id'] . '">' . htmlspecialchars($row['naslov']) . '</a></h3>';
+                        echo '<p>' . htmlspecialchars($row['sazetak']) . '</p>';
+                        echo '<time>' . htmlspecialchars($row['datum']) . '</time>';
+                        echo '</article>';
+                    }
+                } else {
+                    echo '<p class="no-news">No articles in this category.</p>';
+                }
+            ?>
+            </div>
+        </section>
+    </main>
+ 
+    <footer>
+        <div class="footer-logo">
+            <span class="logo-text">F1 News</span>
+        </div>
+        <p class="footer-info">Josip Dumić &nbsp;|&nbsp; 2026</p>
+    </footer>
+ 
+<?php mysqli_close($dbc); ?>
+ 
+</body>
+</html>
