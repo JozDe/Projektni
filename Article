@@ -37,10 +37,12 @@ $cat_display = ($row && isset($category_labels[$row['kategorija']]))
         </div>
         <nav>
             <ul>
-                <li><a href="index.php">HOME</a></li>
+                <li><a href="index.php" class="active">HOME</a></li>
+                <li><a href="kategorija.php?kategorija=F1">DRIVERS</a></li>
+                <li><a href="kategorija.php?kategorija=Circuit">CIRCUITS</a></li>
+                <li><a href="F1stats.php">STATS</a></li>
                 <li><a href="admin.php">ADMINISTRATION</a></li>
                 <li><a href="add.php">ADD NEWS</a></li>
-                <li><a href="F1stats.php">STATS</a></li>
             </ul>
         </nav>
     </header>
@@ -95,9 +97,9 @@ $cat_display = ($row && isset($category_labels[$row['kategorija']]))
  
     <footer>
         <div class="footer-logo">
-            <span class="logo-text">F1</span>
+            <span class="logo-text">F1 News</span>
         </div>
-        <p class="footer-info">F1 News 2026</p>
+        <p class="footer-info">Josip Dumić &nbsp;|&nbsp; 2026</p>
     </footer>
  
 <?php mysqli_close($dbc); ?>
