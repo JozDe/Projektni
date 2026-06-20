@@ -11,4 +11,3 @@ $dbc = mysqli_connect($servername, $username, $password, $basename)
  
 mysqli_set_charset($dbc, "utf8");
 ?>
- 
