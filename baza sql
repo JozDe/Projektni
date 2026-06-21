@@ -1,0 +1,56 @@
+CREATE DATABASE IF NOT EXISTS f1 CHARACTER SET utf8 COLLATE utf8_general_ci;
+USE f1;
+
+CREATE TABLE IF NOT EXISTS korisnik (
+    id              INT AUTO_INCREMENT PRIMARY KEY,
+    ime             VARCHAR(100) NOT NULL,
+    prezime         VARCHAR(100) NOT NULL,
+    korisnicko_ime  VARCHAR(100) NOT NULL UNIQUE,
+    lozinka         VARCHAR(255) NOT NULL,   
+    razina          TINYINT NOT NULL DEFAULT 0  
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS vijesti (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    datum       VARCHAR(20)  NOT NULL,        
+    naslov      VARCHAR(255) NOT NULL,
+    sazetak     VARCHAR(255) DEFAULT NULL,
+    tekst       TEXT         DEFAULT NULL,
+    kategorija  VARCHAR(20)  NOT NULL,        
+    slika       VARCHAR(255) DEFAULT NULL,   
+    arhiva      TINYINT(1)   NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO vijesti (datum, naslov, sazetak, tekst, kategorija, slika, arhiva) VALUES
+('15.06.2026.', 'Verstappen wins in thrilling race', 'Max Verstappen dominated the weekend and claimed another victory of the season.',
+ 'Max Verstappen showed once again why he is a three-time world champion in Sunday''s race. He took the lead from the start and gave no one a chance to attack. His team secured the win with an excellent pit-stop strategy, keeping him ahead of the competition until the chequered flag. This is his third win in the last five races, keeping him at the top of the drivers'' standings.',
+ 'F1', '', 0),
+
+('10.06.2026.', 'Hamilton returns to form after a difficult season', 'Lewis Hamilton records his best result of the season and brings hope back to the fans.',
+ 'Lewis Hamilton has finally shown the form fans expected when he joined his new team. After several difficult races, the seven-time world champion claimed a podium finish and proved he still has plenty to offer in the fight for the top positions. His engineering team has been working on improving the car''s balance over the past two weeks, and it clearly paid off.',
+ 'F1', '', 0),
+
+('02.06.2026.', 'Leclerc fastest in qualifying', 'Charles Leclerc claims pole position in front of the home crowd.',
+ 'Charles Leclerc thrilled the fans by securing pole position in qualifying. The Monegasque driver showed exceptional pace in the final sector of the track, setting a lap time that no one else could match. Tomorrow''s race is shaping up to be a real treat for every F1 fan.',
+ 'F1', '', 0),
+
+('22.05.2026.', 'Norris confirms title contender status', 'Lando Norris continues to deliver solid results and stays near the top of the standings.',
+ 'Lando Norris has once again proven he is a serious contender for this season''s title. The British driver consistently scores points and keeps closing in on the top of the standings. His team highlights that the key to success has been patient car development throughout the season and the trust he has built with his engineering crew.',
+ 'F1', '', 1);
+
+INSERT INTO vijesti (datum, naslov, sazetak, tekst, kategorija, slika, arhiva) VALUES
+('18.06.2026.', 'Spa-Francorchamps delights drivers once again', 'The Belgian track remains one of the most beloved among drivers and fans.',
+ 'The Spa-Francorchamps circuit has once again shown why it is one of the most beloved tracks on the calendar. Unpredictable Belgian weather added extra drama to the weekend, while fast sections like Eau Rouge tested the courage of every driver. Organizers have announced an extension of the track''s contract with Formula 1 until the end of the decade.',
+ 'Circuit', '', 0),
+
+('08.06.2026.', 'Track changes announced for Monza', 'Italian organizers present a plan for minor track modifications ahead of next season.',
+ 'The Autodromo Nazionale Monza, known as the "Temple of Speed", will receive minor modifications in the area of the second chicane to improve safety during overtaking. Organizers state that the new changes will preserve the track''s DNA, known for the highest average speeds on the calendar, while adding extra focus on driver safety.',
+ 'Circuit', '', 0),
+
+('28.05.2026.', 'Suzuka remains a favourite among drivers', 'The Japanese circuit regularly ranks high on drivers'' lists of favourite tracks.',
+ 'The Suzuka International Racing Course has once again topped the list of tracks drivers most enjoy racing on. Its technically demanding figure-eight layout, featuring the fast Esses section, presents a true challenge for every driver and engineer. Fans are renowned for the incredible atmosphere they create throughout the race weekend.',
+ 'Circuit', '', 0),
+
+('05.05.2026.', 'Las Vegas circuit gets new infrastructure upgrades', 'Organizers invest in additional fan amenities ahead of the night race.',
+ 'The Las Vegas circuit continues to draw attention both for its spectacular look at night and for ongoing investment in fan infrastructure. This year, additional grandstands and an improved lighting system have been announced, further highlighting the unique atmosphere of the race on the Strip.',
+ 'Circuit', '', 1);
